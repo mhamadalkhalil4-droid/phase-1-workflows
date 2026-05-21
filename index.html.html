@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Phase 1 Workflows — Direct Debit.cc</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<style>
+  * { box-sizing: border-box; }
+  body { font-family: Arial, sans-serif; background: #F6EFE8; margin: 0; padding: 24px; }
+  h1 { color: #120C24; font-size: 22px; margin-bottom: 4px; }
+  .subtitle { color: #4E465E; font-size: 13px; margin-bottom: 32px; }
+
+  .workflow-container {
+    background: white; border-radius: 16px; padding: 32px;
+    margin-bottom: 40px; box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    overflow-x: auto;
+  }
+  .workflow-title { font-size: 17px; font-weight: 700; color: #120C24; margin-bottom: 6px; }
+  .workflow-sub   { font-size: 12px; color: #4E465E; margin-bottom: 16px; }
+
+  .config-note {
+    background: #FFFBEB; border: 1px solid #F59E0B; border-radius: 8px;
+    padding: 10px 14px; font-size: 11px; color: #92400E;
+    margin: 0 0 16px 0; max-width: 660px;
+  }
+
+  /* Mermaid diagram wrapper */
+  .mermaid { min-width: 600px; }
+
+  /* Legend */
+  .legend { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 24px;
+            padding-top: 18px; border-top: 1px solid #EAE5F4; }
+  .legend-item { display: flex; align-items: center; gap: 7px;
+                 font-size: 11px; color: #4E465E; }
+  .legend-box  { width: 20px; height: 16px; border-radius: 4px; flex-shrink: 0; }
+
+  /* Force Mermaid edge labels to be visible — dark text on yellow background */
+  .edgeLabel { background-color: #FEF9C3 !important; }
+  .edgeLabel span, .edgeLabel p { color: #1F2937 !important; font-weight: 700 !important; font-size: 12px !important; }
+  .edgeLabel rect { fill: #FEF9C3 !important; stroke: none !important; }
+  .edgePath .path { stroke: #374151 !important; stroke-width: 2px !important; }
+  .arrowheadPath { fill: #374151 !important; stroke: #374151 !important; }
+</style>
+</head>
+<body>
+
+<h1>Phase 1 Workflows — Direct Debit.cc</h1>
+<p class="subtitle">Direct Debit.cc · Phase 1 · May 2026</p>
+
+<script>
+mermaid.initialize({
+  startOnLoad: true,
+  theme: 'base',
+  themeVariables: {
+    primaryColor: '#7A5CFF',
+    primaryTextColor: '#ffffff',
+    primaryBorderColor: '#5A3FE0',
+    lineColor: '#374151',
+    secondaryColor: '#4E465E',
+    tertiaryColor: '#EBF3FB',
+    edgeLabelBackground: '#FEF9C3',
+    fontSize: '13px',
+  },
+  flowchart: {
+    curve: 'linear',
+    padding: 20,
+    nodeSpacing: 50,
+    rankSpacing: 60,
+    htmlLabels: true,
+  }
+});
+</script>
+
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- WORKFLOW 1 — Create New Payment Plan                   -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div class="workflow-container">
+  <div class="workflow-title">Workflow 1 — Create New Payment Plan</div>
+  <div class="workflow-sub">Actor: Merchant · Screens: SCR-PP-001 (Create New Payment Plan), SCR-PP-002 (Payment Plans List), SCR-SCH (Payment Schedule)</div>
+
+  <div class="mermaid">
+flowchart TD
+    A([START]) --> B[Merchant opens\nPayment Plans list\nSCR-PP-002]
+    B --> C[Merchant clicks\nCreate New Plan]
+    C --> D[/SCR-PP-001\nCreate New Payment Plan/]
+    D --> E[Merchant fills:\nPlan Name · Frequency\nLifetime]
+    E --> F{Amount\nType?}
+
+    F -->|Fixed| G[Enter Collection Amount\nand Collection Day]
+    F -->|Variable| H[Merchant builds\nPayment Table\nrecurring · add-ons · discounts\none-time payments]
+    H --> I[System auto-calculates\nMax Amount from\npayment table]
+    I --> J[Merchant optionally sets\nExpected Increase %\nfor future buffer]
+    J --> K[Merchant sets\nCollection Day\nFixed or By Start Date]
+    G --> K
+
+    K --> L[Merchant clicks\nSee Payment Schedule]
+    L --> M[/SCR-SCH\nPayment Schedule Preview/]
+    M --> N{Merchant\nconfirms?}
+
+    N -->|No — Edit| O[↺ Return to SCR-PP-001\nto make corrections]
+    N -->|Yes — Save| P[System saves plan\nto database]
+    P --> Q[Plan appears in\nSCR-PP-002 list\nstatus: Active]
+    Q --> R([END\nPayment Plan Created ✓])
+
+    classDef merchant fill:#7A5CFF,color:#fff,stroke:#5A3FE0,stroke-width:1.5px
+    classDef sys     fill:#4E465E,color:#fff,stroke:#333,stroke-width:1.5px
+    classDef screen  fill:#EBF3FB,color:#1F4E79,stroke:#2E75B6,stroke-width:2px
+    classDef dec     fill:#F59E0B,color:#fff,stroke:#D97706,stroke-width:1.5px
+    classDef ok      fill:#22C55E,color:#fff,stroke:#16A34A,stroke-width:1.5px
+    classDef loop    fill:#FFF7ED,color:#92400E,stroke:#F59E0B,stroke-width:1.5px,stroke-dasharray:5 3
+
+    class A,R ok
+    class B,C,E,G,H,J,K,L merchant
+    class I,P,Q sys
+    class D,M screen
+    class F,N dec
+    class O loop
+  </div>
+
+  <div class="legend">
+    <div class="legend-item"><div class="legend-box" style="background:#7A5CFF;"></div> Merchant action</div>
+    <div class="legend-item"><div class="legend-box" style="background:#4E465E;"></div> System action</div>
+    <div class="legend-item"><div class="legend-box" style="background:#F59E0B;"></div> Decision point</div>
+    <div class="legend-item"><div class="legend-box" style="background:#EBF3FB;border:2px solid #2E75B6;"></div> Screen</div>
+    <div class="legend-item"><div class="legend-box" style="background:#22C55E;"></div> End — success</div>
+    <div class="legend-item"><div class="legend-box" style="background:#FFF7ED;border:1.5px dashed #F59E0B;"></div> Loop back</div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- WORKFLOW 2 — Edit Payment Plan                         -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div class="workflow-container">
+  <div class="workflow-title">Workflow 2 — Edit Payment Plan</div>
+  <div class="workflow-sub">Actor: Merchant · Screens: SCR-PP-002, SCR-PP-001 (edit mode), SCR-SCH</div>
+
+  <div class="config-note">
+    ⚙️ <strong>Edit mode only:</strong> The Expected Increase % field is replaced by the <strong>Applied From</strong> date field (required). This date tells the system when to apply the changes to existing mandates.
+  </div>
+
+  <div class="mermaid">
+flowchart TD
+    A([START]) --> B[Merchant selects a plan\nin SCR-PP-002 and clicks Edit]
+    B --> C[/SCR-PP-001 — Edit Mode\nAll fields pre-filled/]
+    C --> D[Merchant makes edits\nand sets Applied From date\nrequired · today onwards]
+    D --> E[Merchant clicks\nSee Payment Schedule]
+    E --> F[/SCR-SCH\nPayment Schedule Preview/]
+    F --> G[Merchant clicks Save]
+    G --> H[System shows\nApply Changes dialog]
+    H --> I{Apply to\nexisting\nmandates?}
+
+    I -->|No — New mandates only| J[System saves edits\nas a new versioned plan\ne.g. Basic → Basic V2]
+    J --> K[Old plan stays unchanged.\nNew mandates going forward\nuse the new version.]
+    K --> L([END\nNew Plan Version Saved ✓])
+
+    I -->|Yes — Apply to existing| M{Which\noption?}
+
+    M -->|Option A| N[Cancel existing mandates.\nCreate new mandates\nwith updated plan terms.]
+    N --> O[New mandates sent\nto bank for approval.\nFlagged as replacing\nexisting customers.]
+    O --> P[On approval: detect\nmissed collection days.\nAuto catch-up triggered.]
+    P --> Q[/See Workflow 3\nCatch-up Collection Logic/]
+
+    M -->|Option B| R[Create new mandates first.\nSend to bank.\nOld mandates keep running.]
+    R --> S[When new mandates approved:\ncancel old ones.\nFlagged as replacing\nexisting customers.]
+    S --> T[Collect payment difference\nbetween old and new\nplan amounts.]
+    T --> Q
+
+    classDef merchant fill:#7A5CFF,color:#fff,stroke:#5A3FE0,stroke-width:1.5px
+    classDef sys     fill:#4E465E,color:#fff,stroke:#333,stroke-width:1.5px
+    classDef sysbank fill:#B36CFF,color:#fff,stroke:#7C3AED,stroke-width:1.5px
+    classDef screen  fill:#EBF3FB,color:#1F4E79,stroke:#2E75B6,stroke-width:2px
+    classDef dec     fill:#F59E0B,color:#fff,stroke:#D97706,stroke-width:1.5px
+    classDef ok      fill:#22C55E,color:#fff,stroke:#16A34A,stroke-width:1.5px
+    classDef ref     fill:#F0EDFF,color:#5B21B6,stroke:#7A5CFF,stroke-width:1.5px
+
+    class A,L ok
+    class B,D,E,G merchant
+    class H,J,K,P,T sys
+    class N,R,S sysbank
+    class O sysbank
+    class C,F screen
+    class I,M dec
+    class Q ref
+  </div>
+
+  <div class="legend">
+    <div class="legend-item"><div class="legend-box" style="background:#7A5CFF;"></div> Merchant action</div>
+    <div class="legend-item"><div class="legend-box" style="background:#4E465E;"></div> System action</div>
+    <div class="legend-item"><div class="legend-box" style="background:#B36CFF;"></div> System — bank submission</div>
+    <div class="legend-item"><div class="legend-box" style="background:#F59E0B;"></div> Decision point</div>
+    <div class="legend-item"><div class="legend-box" style="background:#EBF3FB;border:2px solid #2E75B6;"></div> Screen</div>
+    <div class="legend-item"><div class="legend-box" style="background:#22C55E;"></div> End — success</div>
+    <div class="legend-item"><div class="legend-box" style="background:#F0EDFF;border:1.5px solid #7A5CFF;"></div> Reference to another workflow</div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- WORKFLOW 3 — Catch-up Collection Logic                 -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div class="workflow-container">
+  <div class="workflow-title">Workflow 3 — Catch-up Collection Logic</div>
+  <div class="workflow-sub">Actor: System (fully automated) · Triggered after: Option A or Option B in Workflow 2 · Applies only to mandates flagged as replacing existing customers</div>
+
+  <div class="config-note">
+    ⚙️ <strong>Key rule:</strong> New customer mandates do NOT receive catch-up add-ons. Only mandates flagged as replacing an existing customer go through this workflow. Frequency and max changes go to the plan and all mandates. Catch-up add-ons go to old-customer mandates only — never written into the plan.
+  </div>
+
+  <div class="mermaid">
+flowchart TD
+    A([START\nnew mandate approved by bank]) --> B[System calculates\nmissed payments:\nmissed days × collection amount\nOR payment difference × overlap periods]
+    B --> C{Any missed\npayments\nto collect?}
+
+    C -->|No| D([END\nNo catch-up needed ✓])
+
+    C -->|Yes| E{Main mandate\nfrequency?}
+
+    E -->|Daily| F[Add missed payments\nas add-ons on next\nrecurring daily payments]
+    F --> G{Max amount\nallows\nthe add-on?}
+    G -->|Yes| H[Add-on collected\non next recurring\npayment day]
+    G -->|No| I[System auto-increases\nmax on old-customer\nmandate to allow add-on.\nPlan max also updated.]
+    I --> H
+
+    E -->|Not Daily| J{Frequency allows\na nearby collection\nperiod?}
+    J -->|Yes| K[System schedules\ncatch-up in next\nfrequency period]
+    J -->|No — too infrequent| L[System permanently\nincreases mandate frequency\nto create a closer period.\nPlan frequency also updated.]
+    L --> K
+    K --> M[Catch-up added as\nadd-on in next period\non old-customer mandate]
+
+    H --> N[Catch-up add-ons written\nto old-customer mandates only.\nNew customer mandates\nnot affected.]
+    M --> N
+    N --> O([END\nCatch-up Collected ✓])
+
+    classDef sys  fill:#4E465E,color:#fff,stroke:#333,stroke-width:1.5px
+    classDef dec  fill:#F59E0B,color:#fff,stroke:#D97706,stroke-width:1.5px
+    classDef ok   fill:#22C55E,color:#fff,stroke:#16A34A,stroke-width:1.5px
+
+    class A,D,O ok
+    class B,F,H,I,K,L,M,N sys
+    class C,E,G,J dec
+  </div>
+
+  <div class="legend">
+    <div class="legend-item"><div class="legend-box" style="background:#4E465E;"></div> System action (automated)</div>
+    <div class="legend-item"><div class="legend-box" style="background:#F59E0B;"></div> Decision point</div>
+    <div class="legend-item"><div class="legend-box" style="background:#22C55E;"></div> End — success</div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- WORKFLOW 4 — Create New Mandate                        -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div class="workflow-container">
+  <div class="workflow-title">Workflow 4 — Create New Mandate</div>
+  <div class="workflow-sub">Actor: Merchant · Screens: SCR-MND-001 (Create New Mandate), SCR-SCH (Payment Schedule)</div>
+
+  <div class="mermaid">
+flowchart TD
+    A([START]) --> B[Merchant opens\nMandates Management\nand clicks Create Mandate]
+    B --> C[/SCR-MND-001\nCreate New Mandate/]
+    C --> D{Mandate\ntype?}
+
+    D -->|Custom| E[All fields editable.\nMerchant fills:\nFrequency · Lifetime\nAmount Type · Collection Day]
+    E --> F{Amount\ntype?}
+    F -->|Fixed| G[Enter\nCollection Amount]
+    F -->|Variable| H[Build Payment Table.\nSystem auto-calculates Max.\nOptional Expected Increase %.]
+    G --> I[Merchant enters\nStart Date and\nMandate Reference]
+    H --> I
+
+    D -->|Payment Plan| J[Merchant selects\na plan from dropdown]
+    J --> K[System auto-fills all plan fields.\nAll plan fields locked —\nnot editable by merchant.]
+    K --> I
+
+    I --> L{Payer toggle:\nEntered by Payer?}
+
+    L -->|ON — default| M[Payer will fill their own\nEID · IBAN or CC\nvia Phase 2 link.]
+    L -->|OFF| N[Merchant enters payer's\nEID · IBAN or CC\ndirectly in the form.]
+    N --> O[System validates IBAN\nor Credit Card via API.\n1.5 second check.]
+    O --> P[Merchant enters\nContact Details:\nWhatsApp · Mobile · Email\nat least one required]
+    M --> P
+
+    P --> Q[Merchant clicks\nSee Payment Schedule]
+    Q --> R[/SCR-SCH\nPayment Schedule Preview\nmandate mode/]
+    R --> S{Merchant\nconfirms?}
+
+    S -->|No — Edit| T[↺ Return to SCR-MND-001\nto edit fields]
+    S -->|Yes — Save| U[System saves mandate\nstatus: DRAFT]
+    U --> V[System generates payer link\nand sends via configured channel\nWhatsApp · SMS · Email]
+    V --> W[Mandate status →\nPENDING SIGNATURE]
+    W --> X([END → Phase 2 begins\nPayer receives link ✓])
+
+    classDef merchant fill:#7A5CFF,color:#fff,stroke:#5A3FE0,stroke-width:1.5px
+    classDef sys     fill:#4E465E,color:#fff,stroke:#333,stroke-width:1.5px
+    classDef screen  fill:#EBF3FB,color:#1F4E79,stroke:#2E75B6,stroke-width:2px
+    classDef dec     fill:#F59E0B,color:#fff,stroke:#D97706,stroke-width:1.5px
+    classDef ok      fill:#22C55E,color:#fff,stroke:#16A34A,stroke-width:1.5px
+    classDef loop    fill:#FFF7ED,color:#92400E,stroke:#F59E0B,stroke-width:1.5px,stroke-dasharray:5 3
+
+    class A,X ok
+    class B,E,G,H,J,N,P,Q merchant
+    class K,O,U,V,W sys
+    class C,R screen
+    class D,F,L,S dec
+    class M,I sys
+    class T loop
+  </div>
+
+  <div class="legend">
+    <div class="legend-item"><div class="legend-box" style="background:#7A5CFF;"></div> Merchant action</div>
+    <div class="legend-item"><div class="legend-box" style="background:#4E465E;"></div> System action</div>
+    <div class="legend-item"><div class="legend-box" style="background:#F59E0B;"></div> Decision point</div>
+    <div class="legend-item"><div class="legend-box" style="background:#EBF3FB;border:2px solid #2E75B6;"></div> Screen</div>
+    <div class="legend-item"><div class="legend-box" style="background:#22C55E;"></div> End — next phase</div>
+    <div class="legend-item"><div class="legend-box" style="background:#FFF7ED;border:1.5px dashed #F59E0B;"></div> Loop back</div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- WORKFLOW 5 — Payment Schedule Generation               -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div class="workflow-container">
+  <div class="workflow-title">Workflow 5 — Payment Schedule Generation Logic</div>
+  <div class="workflow-sub">Actor: System · Triggered by: Merchant clicking "See Payment Schedule" on SCR-MND-001 or SCR-PP-001</div>
+
+  <div class="mermaid">
+flowchart TD
+    A([START\nmerchant clicks See Payment Schedule]) --> B[System reads:\nFrequency · Lifetime · Start Date\nAmount Type · Collection Day\nPayment Table rows]
+    B --> C{Amount\nType?}
+
+    C -->|Fixed| D[Generate one row\nper frequency period.\nEach = Collection Day + Fixed Amount.]
+    D --> I
+
+    C -->|Variable| E[Read each row\nin Payment Table.\nGroup by collection date.]
+    E --> F[Recurring payments:\ngenerate all occurrences\nacross full lifetime.]
+    F --> G[Add-ons and Discounts:\napplied on their selected\ncollection days.]
+    G --> H[One-Time payments:\neach appears once\non its selected date.\nRecurring Add-ons:\nonce per add-on period.]
+    H --> I[System groups rows by date.\nCalculates total per\ncollection event.]
+
+    I --> J[Render schedule table:\nTop level = Date + Total Amount.\nExpandable rows if multiple\npayments on same date.]
+    J --> K[/SCR-SCH\nPayment Schedule Preview\nshown to merchant/]
+    K --> L([END\nSchedule Displayed ✓])
+
+    classDef sys    fill:#4E465E,color:#fff,stroke:#333,stroke-width:1.5px
+    classDef screen fill:#EBF3FB,color:#1F4E79,stroke:#2E75B6,stroke-width:2px
+    classDef dec    fill:#F59E0B,color:#fff,stroke:#D97706,stroke-width:1.5px
+    classDef ok     fill:#22C55E,color:#fff,stroke:#16A34A,stroke-width:1.5px
+
+    class A,L ok
+    class B,D,E,F,G,H,I,J sys
+    class K screen
+    class C dec
+  </div>
+
+  <div class="legend">
+    <div class="legend-item"><div class="legend-box" style="background:#4E465E;"></div> System action</div>
+    <div class="legend-item"><div class="legend-box" style="background:#F59E0B;"></div> Decision point</div>
+    <div class="legend-item"><div class="legend-box" style="background:#EBF3FB;border:2px solid #2E75B6;"></div> Screen</div>
+    <div class="legend-item"><div class="legend-box" style="background:#22C55E;"></div> End — success</div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- WORKFLOW 6 — Collection Day Configuration              -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div class="workflow-container">
+  <div class="workflow-title">Workflow 6 — Collection Day Configuration Logic</div>
+  <div class="workflow-sub">Actor: Merchant · Context: Setting the collection day on SCR-PP-001 or SCR-MND-001</div>
+
+  <div class="mermaid">
+flowchart TD
+    A([START\nmerchant reaches Collection Day field]) --> B{Mandate\nfrequency?}
+
+    B -->|Daily| C[No collection day needed.\nField shows N/A automatically.]
+    C --> Z
+
+    B -->|Weekly| D{Collection\nday mode?}
+    D -->|Fixed Day| E[Merchant picks\na day name:\nMonday – Sunday]
+    D -->|By Start Date| F[Merchant enters\na number 1–7.\nDays after the start date.]
+    E --> Z
+    F --> Z
+
+    B -->|Monthly| G{Collection\nday mode?}
+    G -->|Fixed Day| H[Merchant picks\na day 1–31\nof the month]
+    G -->|By Start Date| I[Merchant enters\nnumber of days after\nstart date.\nNote shows months + days.]
+    H --> Z
+    I --> Z
+
+    B -->|Quarterly\nHalf-Yearly\nAnnually\nOne-Time| J{Collection\nday mode?}
+    J -->|Fixed Day| K[Dropdown with one option:\nFirst day of the next Month]
+    J -->|By Start Date| L[Merchant enters\nnumber of days after\nstart date.\nMax: 90 / 182 / 365 days.\nNote shows months + days.]
+    K --> Z
+    L --> Z
+
+    Z[System saves collection\nday configuration.\nUsed to generate\npayment schedule.] --> Y([END\nCollection Day Configured ✓])
+
+    classDef merchant fill:#7A5CFF,color:#fff,stroke:#5A3FE0,stroke-width:1.5px
+    classDef sys     fill:#4E465E,color:#fff,stroke:#333,stroke-width:1.5px
+    classDef dec     fill:#F59E0B,color:#fff,stroke:#D97706,stroke-width:1.5px
+    classDef ok      fill:#22C55E,color:#fff,stroke:#16A34A,stroke-width:1.5px
+
+    class A,Y ok
+    class E,F,H,I,K,L merchant
+    class C,Z sys
+    class B,D,G,J dec
+  </div>
+
+  <div class="legend">
+    <div class="legend-item"><div class="legend-box" style="background:#7A5CFF;"></div> Merchant action</div>
+    <div class="legend-item"><div class="legend-box" style="background:#4E465E;"></div> System action</div>
+    <div class="legend-item"><div class="legend-box" style="background:#F59E0B;"></div> Decision point</div>
+    <div class="legend-item"><div class="legend-box" style="background:#22C55E;"></div> End — success</div>
+  </div>
+</div>
+
+</body>
+</html>
